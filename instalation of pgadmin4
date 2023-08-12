@@ -1,0 +1,180 @@
+Esta instalacion vamos a realizarla en el sistema operativo linux mint 21.1 en la terminal.
+Vamos a instalar pgadmin4
+
+Para ver nuestra informacion relacionada al sistema operativo podemos usar:
+    lsb_release -a
+
+1. Verificar si esta instalado pgadmin4 en nuestro sistema podemos usar:
+    locate pgadmin
+
+    Este comando busca todos los archivos en el sistema con el nombre que le damos.
+    Podemos ver que si esta instalado se encuentra /usr/pgadmin4/. 
+    En esta carpeta se encuentra el binario que ejecuta pgadmin4.
+
+    Tambien podemos ir a inicio de nuestro linux mint buscar pgadmin y nos mostrar si se encuentra pgadmin4 instalado.
+    
+    o podemos hacer pgadmin4 --version
+
+    Aunque este ultimo es muy especial.
+
+    Ahora que sabemos que lo tenemos instalado vamos a borrarlo
+
+2. Eliminar completamente de nuestro sistema dicha version de pgadmin (DEBIAN):
+    
+    2.1 Vamos a listar todos los paquetes instalados de pgadmin con:
+        dpkg -l | grep pgadmin
+
+    2.2 Vamos a eleminar cada paquete de postres instalado con:
+        sudo apt-get --purge remove [nombre de cada paquete de la lista anterior separado con un espacio]
+        
+        en este paso nos pedira la confirmacion de eliminar y ademas los directorios que tenga
+
+    2.3 Una forma alternativa a elimar todos los paquetes instalados es:
+        sudo apt autoremove pgadmin4
+
+
+3. Eliminar todos los datos y directorios de postgres:
+    
+    si escribimos
+        locate pgadmin4
+    vamos a ver donde se encuentran los restos de pgadmin 4 vamos a tomarnos el tiempo de eliminar cada uno, borraremos las carpetas contenedoras para que sea mas rapido y no archivo por archivo.
+        
+    EN MI CASO
+    
+    sudo  rm -rf /home/lis/.cache/pgadmin4/
+    sudo  rm -rf /home/lis/.local/share/pgadmin/
+    sudo  rm -rf /home/lis/.pgadmin/
+    sudo rm /usr/share/icons/Papirus/16x16/apps/pgadmin4.svg
+    sudo rm /usr/share/icons/Papirus/16x16/apps/pgadmin3.svg 
+    sudo rm /usr/share/icons/Papirus/16x16/apps/pgadmin.svg 
+    sudo rm /usr/share/icons/Papirus/22x22/apps/pgadmin3.svg
+    sudo rm /usr/share/icons/Papirus/22x22/apps/pgadmin4.svg
+    sudo rm /usr/share/icons/Papirus/22x22/apps/pgadmin.svg
+    sudo rm /usr/share/icons/Papirus/32x32/apps/pgadmin3.svg
+    sudo rm /usr/share/icons/Papirus/32x32/apps/pgadmin4.svg
+    sudo rm /usr/share/icons/Papirus/32x32/apps/pgadmin.svg 
+    ......    
+    
+    UNA VEZ BORRADO LA MAYORIA O TODOS
+
+
+ 4. Verificar si se encuentra pgadmin luego de la desintalacion:
+    pgadmin4 --version
+        o
+    Tambien podemos ir a inicio de nuestro linux mint buscar pgadmin y nos mostrar si se encuentra pgadmin4 instalado.
+
+
+Una vez Completamente desintalado vamos a comenzar la instalacion de postgres en nuestro sistema
+
+    5. Actualizar indice de paquetes de nuestro servidor local y actualizarlo:
+        sudo apt-get update 
+        sudo apt-get upgrade
+       
+    6. pre-instalacion de pgadmin SACADO DE LA PAGINA OFICIAL DE PGADMIN.ORG:
+        IMPORTANTE TENER CURL
+            sudo apt-get install curl
+        
+        6.1 Instalamos la llave publica del repositorio:
+            curl -fsS https://www.pgadmin.org/static/packages_pgadmin_org.pub | sudo gpg --dearmor -o /usr/share/keyrings/packages-pgadmin-org.gpg
+        
+        6.2 Creamos el archivo de configuracion del repositorio
+            sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/packages-pgadmin-org.gpg] https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/$(lsb_release -cs) pgadmin4 main" > /etc/apt/sources.list.d/pgadmin4.list && apt update'
+
+        ACA IMPORTANTE ES PROBABLE QUE NO PUEDAS HACER EL PASO 6.2 PORQUE PARA NUESTRO LINUX MINT 21.1 Y OTROS NO MINT, NOS DE UN ERROR DE 
+        Err:11 http://apt.postgresql.org/pub/repos/apt vera-pgdg Release               
+          404  Not Found [IP: 217.196.149.55 80]
+        Ign:12 https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/vera pgadmin4 InRelease
+        Err:13 https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/vera pgadmin4 Release
+          404  Not Found [IP: 147.75.85.69 443]
+        Reading package lists... Done
+        E: The repository 'http://apt.postgresql.org/pub/repos/apt vera-pgdg Release' does not have a Release file.
+        N: Updating from such a repository can't be done securely, and is therefore disabled by default.
+        N: See apt-secure(8) manpage for repository creation and user configuration details.
+        E: The repository 'https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/vera pgadmin4 Release' does not have a Release file.
+        N: Updating from such a repository can't be done securely, and is therefore disabled by default.
+        N: See apt-secure(8) manpage for repository creation and user configuration details.
+        
+        La EXPLICACION DEL ERROR ES LA SIGUIENTE:
+        their installation instructions are wrong on Mint. They use $(lsb_release -cs) which they expect to return jammy to select the right URL for their FTP, but on Mint this returns vera, for which they do not have a URL.
+        
+        las instrucciones de instalacion estan mal para MIN (ENTRE OTROS). ellos usan $(lsb_release -cs) esprando que devuelva jammy para seleccionar la url correcta para su FTP, PERO EN MINT ESTE DEVUELVE ver, para la cual no tienen una URL.
+
+        LA SOLUCION A LA QUE LLEGUE DESPUES DE MUCHAS HORAS DE INVESTIGACION POR DISTINTOS FOROS COMO STACKOVERFLOW, LINUX MINT FOROS ETC ES LA SIGUIENTE:
+            instalacion de llave publica      
+            sudo curl https://www.pgadmin.org/static/packages_pgadmin_org.pub | sudo apt-key add
+            
+            Creamos el archivo de configuracion del repositorio
+            sudo sh -c 'echo "deb https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/jammy pgadmin4 main" > /etc/apt/sources.list.d/pgadmin4.list && apt update'
+            
+        Luego de esto ultimo podemos pasar a la instalacion
+        
+    7. Instalacion de pgadmin4.
+        7.1 Para escritorio y web.
+            sudo apt install pgadmin4
+
+        7.2 Solo para escritorio.
+            sudo apt install pgadmin4-desktop
+        
+        7.3 Solo para web.
+            sudo apt install pgadmin4-web
+            
+            SI VAS A USARLO WEB INVESTIGAR COMO CONFIGURARLO.        
+        
+
+        En mi caso solo lo instalare desktop
+        te pedira confirmacion.
+    
+    8. Agregar pgadmin4 a las variables de entorno $PATH.
+        abriremos con:
+        sudo nano /etc/bash.bashrc
+        
+        al final del archivo agregaremos esta linea.
+        export PATH=$PATH:"/usr/pgadmin4"/bin
+
+        CONTROL + X para salir, te pedira confirmar los cambios y luego enter para sobrescribir el archivo original.
+
+        ahora aplicaremos los cambios en la terminal cerrandola y volviendola a abrir.
+
+        podemos escribir:
+            echo $PATH
+        para ver si se agrego correctamente a las variables de entorno.
+
+        lo que hicimos en este paso fue agregar la carpeta bien de nuestro pgadmin4 a la variable de entorno global con esto podemos ejecutar comandos pgadmin4 --version entre otros.
+        IMPORTANTE LOCALIZAR LA CARPETA BIEN CORRECTA PARA AGREGAR A LA VARIABLE DE ENTORNO.
+        
+        
+    9. Verificar instalacion en el sistema con:
+        pgadmin4 --version
+        SI HICISTE EL PASO 8 (ESTE ANTERIOR TE MUESTRA LA VERSION DEL ENTORNO GRAFICO DEL PGADMIN4 NO DEL PGADMIN4)
+         
+        ir a inicio de linux escribir pgadmin4 y te mostrara el icono ejecutable abrirlo para ver que funcione o escribir en la terminal pgadmin4 (SI HICISTE EL PASO 8).
+        luego ir arriba a la izquierda en la opcion help, luego en about pgadmin4 ahi podemos ver la version de pgadmin4 en mi caso 7.5
+    
+    
+    10. Configuracion de servers:
+        veremos la solapa de servidores vacia vamos a agregar el servidor localhost.
+        Clic derecho en servers, register, server...
+        
+        veremos una ventana en name pondremos localhost.
+
+        cambiaremos la pestania de arriba de general a conection. 
+        pondremos en host name/address localhost
+
+        puerto no se toca
+
+        username postgres
+        password LA PASWORD QUE PUSISTE PARA EL USUARIO POSTGRESS EN LA INSTALACION DE POSTGRES.
+        
+        SI NO TE LA ACORDAS, ES POSIBLE MODIFICARLA.
+
+        
+        FINALMENTE LE DAMOS A GUARDA/SAVE.
+
+        Y ahora tendremos en los servers de la ventana principal 1, el localhost dentro de el estan las bases de datos la por defecto postgres, si queremos agregar una nueva es cuestion de click derecho crear una nueva.
+
+        Los cambios que hagamos aca o por el cliente psql se veran reflejados entre ellos, con eso podras verificar que la instalacion tanto de postgresql como pgadmin4 fueron realizadas EXITOSAMENTE.
+
+
+    11. Si llegaste hasta este paso FELICITACIONES tenemos una instalacion limpia y completa de la ultima version de pgadmin4 CASO CONTRARIO GOOGLEAR NAVEGAR POR FOROS INVESTIGAR.
+        Agradecimientos al profesor de base de datos 2 Fabio Gabriel Salerno para motivarme a hacer una mejor guia de instalacion de postgres para uso de cualquiera que necesite instalar dicha base de datos.
+    
