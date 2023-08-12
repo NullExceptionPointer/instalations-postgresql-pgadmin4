@@ -1,0 +1,129 @@
+Esta instalacion vamos a realizarla en el sistema operativo linux mint 21 en la terminal.
+
+Para ver nuestra informacion relacionada al sistema operativo podemos usar:
+    lsb_release -a
+
+1. Verificar si esta instalado postgres en nuestro sistema podemos usar:
+    psql --version
+        o
+    sudo -u postgres psql
+
+en el segundo caso veremos que nos pide la contrasenia, si no se encuentra instalado ir al paso 5
+
+
+2. Eliminar completamente de nuestro sistema dicha version de postgres (DEBIAN):
+    
+    2.1 Vamos a listar todos los paquetes instalados de postgres con:
+        dpkg -l | grep postgres
+    2.2 Vamos a eleminar cada paquete de postres instalado con:
+        sudo apt-get --purge remove [nombre de cada paquete de la lista anterior separado con un espacio]
+        
+        en este paso nos pedira la confirmacion de eliminar y ademas los directorios que tenga
+
+    2.3 Una forma alternativa a elimar todos los paquetes instalados es:
+        sudo apt-get --purge remove postgresql postgresql-*
+
+3. Eliminar todos los datos y directorios de postgres:
+    
+    3.1 /var/lib/postgresql/ :
+        cd /var/lib
+        ls | grep postgres
+
+        En caso que exista dicha carpeta vamos a hacer:
+        sudo rm -rf /var/lib/postgresql/
+
+    3.2 /var/log/postgresql/:
+        cd /var/log
+        ls | grep postgres
+
+        En caso que exista dicha carpeta vamos a hacer:
+        sudo rm -rf /var/log/postgresql/
+    
+    3.3 /etc/postgresql/ :
+        cd /etc/
+        ls | grep postgres
+
+        En caso que exista dicha carpeta vamos a hacer:
+        sudo rm -rf /etc/postgresql/
+
+
+ 4. Verificar si se encuentra postgres luego de la desintalacion:
+    psql --version
+        o
+    sudo -u postgres psql
+
+    En caso exitoso deberia mostrar comando no encontrado
+
+
+Una vez Completamente desintalado vamos a comenzar la instalacion de postgres en nuestro sistema
+
+    5. Actualizar indice de paquetes de nuestro servidor local y actualizarlo:
+        sudo apt-get update 
+        sudo apt-get upgrade
+    
+    6. Instalacion de postgres:
+        sudo apt install postgresql postgresql-client postgresql-contrib
+    
+        Nos pedira confirmacion de instalacion  
+        
+    7. Verificar instalacion en el sistema con:
+        psql --version
+    
+    8. Configuracion de contrasenia del usuario postgresql:
+        sudo -u postgres psql
+
+        Cuando abra el prompt de postgres:
+            alter user postgres with encrypted password 'password';
+
+            Debe mostrar ALTER ROLE sino apretar control + c e intentar denuevo
+    
+    9. Ahora vamos a configurar el archivo pg_hba.config para que nos pida ingreso de contrasenia al logear:
+        sudo nano /etc/postgresql/[VERSION]/main/pg_hba.conf
+
+        en mi caso la version 14.
+
+        9.1 ubicar al final del archivo la linea que dice:
+            local   all             postgres                                peer
+            
+            modificar la palabra peer por md5
+        
+        9.2 ubicar al final del archivo la linea que dice:
+            local   all             all                                     peer
+
+            modificar la palabra peer por md5
+        
+        9.3 Guardar los cambios:
+            en nano se usa CONTROL + X para salir.
+
+            Te pedira confirmar si quieres aplicar los cambios que hicimos. apretar y o s
+
+            Te pedira el nombre del archivo solo apretar enter
+    
+    10. Vamos a reiniciar el servicio de postgres en la terminal:
+        sudo service postgresql restart
+    
+        va a tardar unos segundos.
+
+    11. Listo la instalacion y configuracion esta completa ahora vamos a logear para ver que funcione correctamente:
+        psql -U postgres -W
+
+        te pedira la contrasenia del punto 8.
+
+        te aparecera el pormpt de postgres donde podemos hacer:
+            select version();
+            es la version se puede salir con q.
+
+            \h 
+            es la ayuda se  puede salir con q.
+
+            \l
+            listar bases de datos
+
+            \c
+            conectar a base de datos
+
+            \d
+            listar tablas de la base
+
+    12. Si llegaste hasta este paso felicidades tenemos una instalacion limpia y completa de la ultima version de postgres estable.
+        Agradecimientos al profesor de base de datos 2 Fabio Gabriel Salerno para motivarme a hacer una mejor guia de instalacion de postgres para uso de cualquiera que necesite instalar dicha base de datos.
